@@ -155,7 +155,7 @@ int PrependList(Position head, char* name, char* surname, int birthYear)
         return -1;
     }
 
-    InsertAfter(head, newPerson); // umetni nakon head-a novu osobu, puni listu, 95. linija
+    InsertAfter(head, newPerson);
 
     return EXIT_SUCCESS;
 }
@@ -242,7 +242,7 @@ int FindBySurname(Position first, char* surname)
         }
         temp=temp->next;
 
-        return NULL; // ako nema tog prezimena vraca NULL
+        return NULL;
     }*/
 
     while(temp!=NULL && strcmp(temp->surname, surname))
@@ -293,7 +293,7 @@ int Delete(Position head, char* surname) //izbrisati odredeni element
         head->next=temp->next;
         free(temp);
     }
-    //zasto moram dva puta napisat prezime?????
+   
     return 0;
 }
 /*.......*/
