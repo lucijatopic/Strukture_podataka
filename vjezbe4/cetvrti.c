@@ -15,14 +15,14 @@ typedef struct _Polynom
     Position next;
 }Polynom;
 
-int TypeInFileName(char* FileNme);
-int ReadFile(Position head1, Position head2, char* FileNme);
+int TypeInFileName(char* FileName);
+int ReadFile(Position head1, Position head2, char* FileName);
 int ParseStringToList(Position head, char* buffer);
 Position CreateElement(int coefficient, int exponent);
 int InsertSorted(Position head, Position NewElement);
 int MergeAfter(Position position, Position NewElement);
 int InsertAfter(Position position, Position NewElement);
-int DeleteAfter(Position previous);
+int DeleteAfter(Position prethodni);
 int CreateAndInsertAfter(int coeff, int expo, Position position);
 int AddPolynom1(Position resultHead, Position head1, Position head2);
 int AddPolynom2(Position resultHead, Position head1, Position head2);
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 
     char filename[MAX_SIZE]={0};
 
-    TypeInFileNmae(filename);
+    TypeInFileName(filename);
 
     if(ReadFile(&head1, &head2, filename) == EXIT_SUCCESS)
     {
@@ -63,23 +63,23 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
 }
 
-int TypeInFileName(char* FileNme)
+int TypeInFileName(char* FileName)
 {
     printf("Unesite ime datoteke:\n");
-    scanf(" %s", FileNme);
+    scanf(" %s", FileName);
 
     return EXIT_SUCCESS;
 }
 
-int ReadFile(Position head1, Position head2, char* FileNme)
+int ReadFile(Position head1, Position head2, char* FileName)
 {
     FILE* fp=NULL;
     char buffer[MAX_LINE]={0};
     int status=EXIT_SUCCESS;
 
-    fp=fopen(FileNme, "r");
+    fp=fopen(FileName, "r");
 
-    if(fp==NULL)
+    if(!fp)
     {
         perror("Nemoguce otvoriti datoteku!\n");
         return -1;
@@ -111,15 +111,15 @@ int ParseStringToList(Position head, char* buffer)
     char* currentBuffer= buffer;
     int coefficient=0;
     int exponent=0;
-    int nBytes=0;
+    int brBytes=0;
     int status=0;
     Position NewElement=NULL;
 
     while(strlen(currentBuffer)>0)
     {
-        status = sscanf(currentBuffer, " %d %d %n", &coefficient, &exponent, &nBytes); // u datoteci, koef i ekspo
-      
-        if(status != 2)                                                                // su poslozeni u parovima
+        status = sscanf(currentBuffer, " %d %d %n", &coefficient, &exponent, &brBytes); // u datoteci, koef i ekspo
+
+        if(status != 2)  // sscanf vraca nesto, ovdje 2                                 // su poslozeni u parovima
         {
             printf("Datoteka nije dobra!\n");
             return EXIT_FAILURE;
@@ -127,14 +127,15 @@ int ParseStringToList(Position head, char* buffer)
 
         NewElement = CreateElement(coefficient, exponent);
 
-        if(NewElement == NULL)
+        if(!NewElement)
         {
             return EXIT_FAILURE;
         }
 
         InsertSorted(head, NewElement);
 
-        currentBuffer+= nBytes;  // ZAR NEBI TREBALO BIT -= AKO IDE WHILE STRLEN>0 ???????????????????????!!!!!!!!!!!!!!!!
+        currentBuffer+= brBytes;
+
     }
 
     return EXIT_SUCCESS;
@@ -150,7 +151,7 @@ Position CreateElement(int coefficient, int exponent)
     if(Element == NULL)
     {
         perror("Nemoguce alocirati memoriju!\n");
-        return Element; // vraca NULL onda
+        return Element;
     }
 
     Element->coefficient=coefficient;
@@ -160,11 +161,11 @@ Position CreateElement(int coefficient, int exponent)
     return Element;
 }
 
-int InsertSorted(Position head, Position NewElement)  // NE KUZIN BAS!!!!!!!!!!!!!!1!!!!
+int InsertSorted(Position head, Position NewElement) // ponovi ovo, pogledaj opet
 {
     Position temp = head;
 
-    while(temp->next != NULL && temp->next->exponent < NewElement->exponent)
+    while(temp->next != NULL && temp->next->exponent < NewElement->exponent) // dok nije kraj i dok je eksponent manji, dakle uzlazno sortirano
     {
         temp = temp->next;
     }
@@ -178,12 +179,12 @@ int MergeAfter(Position position, Position NewElement) //sjediniti (npr. ako ima
 {
     if(position->next == NULL || position->next->exponent != NewElement->exponent)  // ako novi element nema isti eksponent kao i postojeci elemenet
     {
-        InsertAfter(position, NewElement);
+        InsertAfter(position, NewElement);  // nemamo sto sjediniti, eksponenti su im razliciti
     }
-    else  // imaju novi element i postojeci element isti koeficijent, pretvaramo ih u jedan element
+    else  // imaju novi element i postojeci element isti eksponent, pretvaramo ih u jedan element, tipa x + 2x
     {
-        int resultCoeff = position->next->coefficient + NewElement->coefficient;
-       
+        int resultCoeff = position->next->coefficient + NewElement->coefficient;  // pazi na position->next
+
         if(resultCoeff==0) // zbroj je nula pa element nestaje
         {
             DeleteAfter(position);
@@ -207,12 +208,12 @@ int InsertAfter(Position position, Position NewElement)
     return EXIT_SUCCESS;
 }
 
-int DeleteAfter(Position previous)
+int DeleteAfter(Position prethodni)  // brisemo iza ovoga prethodnog, kucice izgledaju prethodni, del
 {
     Position Del=NULL;
 
-    Del=previous->next;
-    previous->next=Del->next;
+    Del=prethodni->next;
+    prethodni->next=Del->next;
 
     free(Del);
 
@@ -223,7 +224,7 @@ int AddPolynom1(Position resultHead, Position head1, Position head2)
 {
     Position a= head1->next;  // zasto ide od next a ne od head? (uvik tako), ipak logicno nvm!
     Position b= head2->next;
-    Position c= resultHead;  // ova opcija stvara novu listu
+    Position c= resultHead; // u ovoj funkciji se stvara nova vezana lista
     Position temp= NULL;
 
     while(a != NULL && b != NULL)
@@ -240,7 +241,7 @@ int AddPolynom1(Position resultHead, Position head1, Position head2)
             CreateAndInsertAfter(a->coefficient, a->exponent, c);
             a = a->next;
         }
-        
+
         else
         {
             CreateAndInsertAfter(b->coefficient, b->exponent, c);
@@ -258,12 +259,12 @@ int AddPolynom1(Position resultHead, Position head1, Position head2)
         temp=a;
     }
 
-   while(temp!= NULL)
+   while(temp!= NULL) // sve ostale prepisujemo!!
    {
        CreateAndInsertAfter(temp->coefficient, temp->exponent, c);
        temp=temp->next;
    }
-    
+
     return EXIT_SUCCESS;
 
 }
@@ -302,13 +303,13 @@ int CreateAndInsertAfter(int coeff, int expo, Position position)
 {
     Position NewElement = CreateElement(coeff, expo);
 
-    if(NewElement==NULL)
+    if(!NewElement)
     {
         return EXIT_FAILURE;
     }
 
     InsertAfter(position, NewElement);
-    position=position->next;
+    position=position->next;  // iduci put ce ta pozicija bit ovaj novi element
 
     return EXIT_SUCCESS;
 }
@@ -318,7 +319,7 @@ int MultiplyPolynom(Position resultHead, Position head1, Position head2)
     Position i = NULL;
     Position j = NULL;
 
-    for(i = head1->next; i != NULL; i = i->next) // ide po jednom i po drugom
+    for(i = head1->next; i != NULL; i = i->next) //idemo po svakoj listi
     {
         for(j = head2->next; j != NULL; j = j->next)
         {
@@ -328,7 +329,7 @@ int MultiplyPolynom(Position resultHead, Position head1, Position head2)
                 return EXIT_FAILURE;
             }
 
-           InsertSorted(resultHead, newEl); 
+           InsertSorted(resultHead, newEl);
         }
     }
 
@@ -356,7 +357,7 @@ int Print(char* name, Position first)
             if(first->coefficient == 1)
             {
                 printf("x^%d", first->exponent);
-        
+
             }
             else
             {
@@ -399,19 +400,19 @@ int Print(char* name, Position first)
             {
                     if(first->coefficient == 1)
                     {
-                        printf("+ x^%d", first->exponent);          
+                        printf("+ x^%d", first->exponent);
                     }
                     else
                     {
                         printf("+ %dx^%d", first->coefficient, first->exponent);
                     }
-            
+
             }
 
         }
     }
 
-    print("\n");
+    printf("\n");
     return EXIT_SUCCESS;
 
 }
