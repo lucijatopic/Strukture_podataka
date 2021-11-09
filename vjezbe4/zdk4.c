@@ -223,7 +223,7 @@ int AddPolynom1(Position resultHead, Position head1, Position head2)
 {
     Position a= head1->next;  // zasto ide od next a ne od head? (uvik tako), ipak logicno nvm!
     Position b= head2->next;
-    Position c= resultHead;
+    Position c= resultHead;  // ova opcija stvara novu listu
     Position temp= NULL;
 
     while(a != NULL && b != NULL)
@@ -318,7 +318,7 @@ int MultiplyPolynom(Position resultHead, Position head1, Position head2)
     Position i = NULL;
     Position j = NULL;
 
-    for(i = head1->next; i != NULL; i = i->next)
+    for(i = head1->next; i != NULL; i = i->next) // ide po jednom i po drugom
     {
         for(j = head2->next; j != NULL; j = j->next)
         {
