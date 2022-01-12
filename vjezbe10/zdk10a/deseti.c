@@ -78,7 +78,7 @@ int CitajIzDatoteke(char *dat, PositionD head)
     {
 
         PositionD q = NULL;
-        q = (Drzave*)malloc(sizeof(Drzave));
+        q = (PositionD)malloc(sizeof(Drzave));
         q->next = NULL;
 
         fgets(buffer, MAX_LINE, fp);
@@ -122,9 +122,9 @@ PositionG CitajGradoveIzDat(char* dat)
 	while(!feof(fp))
 	{
 		fgets(buffer, MAX_LINE, fp);
-		//status = sscanf(buffer, " %s %d", ImeGrada, &br_stanovnika);
+		status = sscanf(buffer, " %s %d", ImeGrada, &br_stanovnika);
 
-		if (sscanf(buffer, " %s %d", ImeGrada, &br_stanovnika) == 2)
+		if (status == 2)
 		{
 			prvi = UnesiGradSortiranoUStablo(ImeGrada, br_stanovnika, prvi);
 		}
