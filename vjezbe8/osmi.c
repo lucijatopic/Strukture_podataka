@@ -21,7 +21,7 @@ int Print_Level_Order(Position current, int br_level);
 Position Pronadi_Element(Position current, int el);
 Position Izbrisi_Element(Position current, int el);
 Position Pronadi_Min(Position current);
-
+Position Pronadi_Max(Position current);
 
 int main()
 {
@@ -37,7 +37,7 @@ int main()
 	{
 
 		printf("Odabrite sto zelite napraviti:\n");
-		printf("1. Dodavanje novog elementa u stablo\n"); 
+		printf("1. Dodavanje novog elementa u stablo\n");
 		printf("2. Printanje elemenata (inorder)\n");
 		printf("3. Printanje elemenata (postoreder)\n");
 		printf("4. Printanje elemenata (preorder)\n");
@@ -85,7 +85,7 @@ int main()
 			printf("Koji element zelite izbrisati u stablu?\n");
 			scanf("%d", &el);
 			root = Izbrisi_Element(root, el);
-			break; 
+			break;
 
 		case 8:
 			return 0;
@@ -201,7 +201,7 @@ Position Pronadi_Element(Position current, int el)
 Position Izbrisi_Element(Position current, int el)
 {
 	Position q;
-	
+
 	if (!current)
 		return current;
 
@@ -213,28 +213,29 @@ Position Izbrisi_Element(Position current, int el)
 
 	else
 	{
-		if (current->L && current->R) // dakle ima i lijevu i desnu stranu
+		if (current->R)
 		{
 			q = Pronadi_Min(current->R);
 			current->El = q->El; // idemo od namanjeg prema "gore"
-			current->R = Izbrisi_Element(current->R, q->El);
+			current->R = Izbrisi_Element(current->R, current->El);
 		}
+
+		else if(current->L)
+        {
+            q = Pronadi_Max(current->L);
+			current->El = q->El;
+			current->L = Izbrisi_Element(current->L, current->El);
+        }
 
 		else
 		{
-			q = current;
 
-			if (!current->L) // nema tog livog, idemo desno
-				current = current->R;
-
-			else if (!current->R) // obrnuto od ovog gore
-				current = current->L;
-
-			free(q);
+			free(current);
+			current = NULL;
 		}
 	}
 
-	return q;
+	return current;
 }
 
 Position Pronadi_Min(Position current) // onaj koji je na krajnjoj lijevoj strani je minimalan
@@ -242,6 +243,16 @@ Position Pronadi_Min(Position current) // onaj koji je na krajnjoj lijevoj stran
 	while (current)
 	{
 		current = current->L;
+	}
+
+	return current;
+}
+
+Position Pronadi_Max(Position current)
+{
+	while (current)
+	{
+		current = current->R;
 	}
 
 	return current;
