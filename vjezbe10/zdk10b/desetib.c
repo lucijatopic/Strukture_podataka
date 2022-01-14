@@ -2,28 +2,28 @@
 #include<stdlib.h>
 #include<string.h>
 
-#define MAX_LINE 1024
+#define MAX_LINE 70
 
 //lista
 struct _Gradovi;
 typedef struct _Gradovi* PositionG;
-typedef struct _Gradovi
-{
+typedef struct _Gradovi{
+
     char imeG[MAX_LINE];
     int br_stanovnika;
     PositionG next;
-} Gradovi;
+}Gradovi;
 
 //stablo
 struct _Drzave;
 typedef struct _Drzave* PositionD;
-typedef struct _Drzave
-{
+typedef struct _Drzave{
+
     char imeD[MAX_LINE];
     PositionD L;
     PositionD R;
     PositionG head;
-} Drzave;
+}Drzave;
 
 PositionD CitajDrzaveIzDatoteke(char* dat, PositionD prvi);
 int CitajGradoveIzDatoteke(char* dat, PositionG head);
@@ -92,7 +92,7 @@ PositionD CitajDrzaveIzDatoteke(char *dat, PositionD prvi)
 
             prvi = UnesiDrzaveSortiranoUStablo(prvi, q);
         }
-        else
+        else if (status!=2)
         {
             printf("Nepravilan format datoteke!\n");
             return -2;
@@ -138,18 +138,18 @@ int CitajGradoveIzDatoteke(char* dat, PositionG head)
         q = NULL;
 
         fgets(buffer, MAX_LINE, fp);
-        status = sscanf(fp, " %s %d", imeGrada, &brStan);
+        status = sscanf(buffer, " %s %d", imeGrada, &brStan);
 
         if (status == 2)
         {
             q = NoviElementListe(imeGrada, brStan);
             UnesiGradSortiranoUListu(head, q);
         }
-        /*else
+        else if (status!=2)
         {
         	printf("Nepravilan format datoteke!\n");
         	return -2;
-        }*/
+        }
     }
 
     fclose(fp);
@@ -238,7 +238,7 @@ int PrintStabloInorder(PositionD current)
         return 0;
 
     PrintStabloInorder(current->L);
-    printf("%s\n", current->imeD);
+    printf("\n\n%s\n", current->imeD);
     PrintListe(current->head);
     PrintStabloInorder(current->R);
 
@@ -250,7 +250,7 @@ int PrintListe(PositionG head)
     PositionG q = head->next;
     while (q != NULL)
     {
-        printf(" %s\t\t%n", q->imeG, q->br_stanovnika);
+        printf("\n%s\t\t%d", q->imeG, q->br_stanovnika);
         q = q->next;
     }
     return 0;
