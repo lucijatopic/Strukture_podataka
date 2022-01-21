@@ -27,23 +27,26 @@ typedef struct _ListaDrzava
 } ListaDrzava;
 
 int CitajIzDatoteke(char* dat, PositionLD head, ListaDrzava hashTablica[]);
-PositionSG CitajGradoveIzDatoteke(char* dat, PositionSG current);
+PositionSG CitajGradoveIzDatoteke(char* dat);
 int UmetniSortiranoUListu(PositionLD novi, PositionLD head);
-PositionSG UmetniSortiranoUStablo(PositionSG novi, PositionSG current);
-PositionSG StvoriNoviElementStabla(char* imeGrada, int brojStan);
-int NovaLista(PositionLD head);
-int PrintStabloInorder(PositionSG root);
+PositionSG SortiraniUnosUStablo(char* imeGrada, int brStan, PositionSG current)
 int UmetniNakon(PositionLD current, PositionLD novi);
+int PrintStabloInorder(PositionSG root);
+PositionLD NovaLista();
+int PrintListe(PositionLD head);
+int GradoviSViseStanovnika(char* imeDrzave, int brStan, ListaDrzava hashTablica[]);
+int PronadiMax(PositionSG current);
 //do ovdje kao i 10a)
 int HashKljuc(char* imeDrzave);
 int NovaHashTablica(ListaDrzava hashTablica[], PositionSG novi);
 PositionSG PronadiGrad(PositionSG current, int brojStan);
-int PronadiDrzavu(ListaDrzava hashTablica[], PositionLD head, char* imeDrzave, int br_stan);
+PositionLD PronadiDrzavu(char* imeDrzave, PositionLD head);
 
 int main()
 {
     ListaDrzava head = {.imeD = {0}, .next = NULL, .rootGradova = NULL};
     PositionLD temp = &head;
+
     char* imeDrzave[MAX_LINE] = {0};
     int brojS = 0;
 
@@ -51,11 +54,20 @@ int main()
 
     for(int i = 0; i < SIZE_OF_HASH; i++)
     {
-        NovaLista(&hashTablica[i]);
+        hashTablica[i] = *NovaLista();
     }
-    return 0;
+
 
     CitajIzDatoteke("drzave.txt", temp, hashTablica);
+
+    for(int i = 0; i < SIZE_OF_HASH; i++)
+    {
+        if(hashTablica[i].next != NULL)
+        {
+            PrintListe(&hashTablica[i]);
+        }
+    }
+
 
     printf("Odaberi drzavu: ");
     scanf(" %s", imeDrzave);
@@ -63,7 +75,7 @@ int main()
     printf("Odaberite broj stanovnika: ");
     scanf("%d", &brojS);
 
-    PronadiDrzavu(hashTablica, temp, imeDrzave, brojS);
+    GradoviSViseStanovnika(imeDrzave, brojS, hashTablica);
 }
 
 int CitajIzDatoteke(char* dat, PositionLD head, ListaDrzava hashTablica[])
@@ -87,6 +99,8 @@ int CitajIzDatoteke(char* dat, PositionLD head, ListaDrzava hashTablica[])
     {
         PositionLD novi = NULL;
         novi = (PositionLD)malloc(sizeof(ListaDrzava));
+        novi->next = NULL;
+
         if(!novi)
         {
             printf("Nemoguce alocirati memoriju!\n");
@@ -100,8 +114,8 @@ int CitajIzDatoteke(char* dat, PositionLD head, ListaDrzava hashTablica[])
         if(status == 2)
         {
             novi->rootGradova = NULL;
-            novi->rootGradova = CitajGradoveIzDatoteke(DatotekeGradova, novi->rootGradova);
-            UmetniSortiranoUListu(novi, head);
+            novi->rootGradova = CitajGradoveIzDatoteke(DatotekeGradova);
+
             NovaHashTablica(hashTablica, novi);
         }
     }
@@ -114,12 +128,23 @@ int UmetniSortiranoUListu(PositionLD novi, PositionLD head)
 {
     PositionLD temp = head;
 
-    while(temp->next != NULL && strcmp(temp->next->imeD, novi->imeD) < 0)
-        temp = temp->next;
+    while (temp->next != NULL && strcmp(temp->imeD, novi->imeD) < 0)
+    {
+        temp=temp->next;
+    }
 
-    UmetniNakon(temp, novi);
+    if(temp->next == NULL || strcmp(temp->next->imeD, novi->imeD) != 0)
+    {
+        UmetniNakon(temp, novi);
+    }
 
-    return 0;
+    else if(strcmp(temp->next->imeD, novi->imeD) == 0)
+    {
+        return -1;
+    }
+
+    return EXIT_SUCCESS;
+
 }
 
 int UmetniNakon(PositionLD current, PositionLD novi)
@@ -130,18 +155,35 @@ int UmetniNakon(PositionLD current, PositionLD novi)
     return 0;
 }
 
-int NovaLista(PositionLD novi)
+PositionLD NovaLista()
 {
+    PositionLD novi = NULL;
+    novi = (PositionLD)malloc(sizeof(ListaDrzava));
+
     novi->next = NULL;
     novi->rootGradova = NULL;
     strcpy(novi->imeD, "");
 
-
-    return 0;
+    return novi;
 
 }
 
-PositionSG CitajGradoveIzDatoteke(char* dat, PositionSG current)
+int PrintListe(PositionLD head)
+{
+    PositionLD q = head->next;
+
+    while(q != NULL)
+    {
+        printf("\n %s \n", q->imeD);
+        PrintStabloInorder(q->rootGradova);
+
+        q = q->next;
+    }
+
+    return 0;
+}
+
+PositionSG CitajGradoveIzDatoteke(char* dat)
 {
     char buffer[MAX_LINE] = {0};
     int br_stanovnika = 0;
@@ -168,57 +210,47 @@ PositionSG CitajGradoveIzDatoteke(char* dat, PositionSG current)
 
         if(status == 2)
         {
-            PositionSG novi = StvoriNoviElementStabla(imeGrada, br_stanovnika);
-            current = UmetniSortiranoUStablo(novi, current);
+            novi = SortiraniUnosUStablo(imeGrada, br_stanovnika, novi);
         }
     }
 
     fclose(fp);
 
-    return 0;
-}
-PositionSG StvoriNoviElementStabla(char* imeGrada, int brojStan)
-{
-    PositionSG novi = NULL;
-    novi = (PositionSG)malloc(sizeof(StabloGradova));
-
-    if(!novi)
-    {
-        printf("Nemoguce alocirati memoriju!\n");
-        return -1;
-    }
-
-    strcpy(novi->imeG, imeGrada);
-    novi->br_stanovnika = brojStan;
-    novi->L = NULL;
-    novi->R = NULL;
-
     return novi;
 }
-PositionSG UmetniSortiranoUStablo(PositionSG novi, PositionSG current)
+
+PositionSG SortiraniUnosUStablo(char* imeGrada, int brStan, PositionSG current)
 {
     if(current == NULL)
-        return novi;
-
-    else if(current->br_stanovnika < novi->br_stanovnika)
-        current->L = UmetniSortiranoUStablo(novi, current->L);
-
-    else if(current->br_stanovnika > novi->br_stanovnika)
-        current->R = UmetniSortiranoUStablo(novi, current->R);
-
-    else // ako su isti
     {
-        if(strcmp(current->imeG, novi->imeG) < 0)
-            current->R = UmetniSortiranoUStablo(novi, current->R);
-
-        else if(strcmp(current->imeG, novi->imeG) > 0)
-            current->L = UmetniSortiranoUStablo(novi, current->L);
-
-        else // dva potpuno ista
-            free(novi);
+        current = (PositionSG)malloc(sizeof(StabloGradova));
+        strcpy(current->imeG, imeGrada);
+        current->br_stanovnika = brStan;
+        current->L = NULL;
+        current->R = NULL;
     }
 
+    else if(current->br_stanovnika < brStan)
+        current->R = SortiraniUnosUStablo(imeGrada, brStan, current->R);
+
+    else if(current->br_stanovnika > brStan)
+        current->L = SortiraniUnosUStablo(imeGrada, brStan, current->L);
+
+    else if (brStan == current->br_stanovnika) // ako su isti
+    {
+        if(strcmp(current->imeG, imeGrada) < 0)
+            current->R = SortiraniUnosUStablo(imeGrada, brStan, current->R);
+
+        else if(strcmp(current->imeG, imeGrada) > 0)
+            current->L = SortiraniUnosUStablo(imeGrada, brStan, current->L);
+
+    }
+
+    else // dva potpuno ista
+        free(current);
+
     return current;
+
 }
 
 int PrintStabloInorder(PositionSG root)
@@ -227,8 +259,35 @@ int PrintStabloInorder(PositionSG root)
         return 0;
 
     PrintStabloInorder(root->L);
-    printf(" %s %d\n", root->imeG, root->br_stanovnika);
+    printf(" %s\t%d\n", root->imeG, root->br_stanovnika);
     PrintStabloInorder(root->R);
+
+    return 0;
+}
+
+int GradoviSViseStanovnika(char* imeDrzave, int brStan, ListaDrzava hashTablica[])
+{
+    int kljuc = HashKljuc(imeDrzave);
+
+    PositionLD UnesenaDrzava = PronadiDrzavu(imeDrzave, &hashTablica[kljuc]);
+
+    int maxim = 0;
+
+    if(UnesenaDrzava == NULL)
+    {
+        printf("Drzava nije pronadena!\n");
+        return -1;
+    }
+
+    maxim = PronadiMax(UnesenaDrzava->rootGradova);
+    if (brStan > maxim)
+    {
+        printf("Nisu pronadeni gradovi s vise stanovnika\n");
+        return -2;
+    }
+
+    printf("\nGradovi s vise stanovnika: \n");
+    PronadiGrad(brStan, UnesenaDrzava->rootGradova);
 
     return 0;
 }
@@ -240,50 +299,50 @@ int HashKljuc(char* imeDrzave)
     return suma%11;
 }
 
-int NovaHashTablica(ListaDrzava hashTablica[], PositionSG novi)
+int NovaHashTablica(ListaDrzava hashTablica[], PositionLD novi)
 {
-    int kljuc = HashKljuc(novi->imeG);
+    int kljuc = HashKljuc(novi->imeD);
 
     UmetniSortiranoUListu(novi, &hashTablica[kljuc]);
 
     return 0;
 }
 
-int PronadiDrzavu(ListaDrzava hashTablica[], PositionLD head, char* imeDrzave, int br_stan)
+int PronadiMax(PositionSG current)
 {
-    PositionLD temp = head->next;
+    int maxim = 0;
 
-    while(temp != NULL && strcmp(imeDrzave, temp->imeD) != 0)
-        temp = temp->next;
+    if (current == NULL)
+        return 0;
 
-    if(temp != NULL)
-    {
-        printf("Gradovi s vise stanovnika: \n");
-        temp->rootGradova = PronadiGrad(temp->rootGradova, br_stan);
-    }
+    if (current->R == NULL)
+        return current->br_stanovnika;
 
-    else
-        printf("Ta drzava ne postoji!\n");
+    maxim = PronadiMax(current->R);
 
-    return 0;
+    return maxim;
 }
 
-PositionSG PronadiGrad(PositionSG current, int brojStan)
+PositionLD PronadiDrzavu(char* imeDrzave, PositionLD head)
+{
+    PositionLD temp = head;
+
+    while(temp->next!=NULL && strcmp(temp->next->imeD,imeDrzave) != 0)
+        temp=temp->next;
+
+    return temp->next;
+}
+
+int PronadiGrad(PositionSG current, int brojStan)
 {
     if(current == NULL)
-        return NULL;
+        return 0;
 
-    else if (current->br_stanovnika >= brojStan)
-    {
-        current->L = PronadiGrad(current->L, brojStan);
-        printf("\nDrzava: %s, broj stanovnika: %d", current->imeG, current->br_stanovnika);
-        current->R = PronadiGrad(current->R, brojStan);
-    }
+    PronadiGrad(current->L, brojStan);
+    if(current->br_stanovnika >= brojStan)
+        printf("Grad: %s, broj stanovnika: %d", current->imeG, current->br_stanovnika);
 
-    else if(current->br_stanovnika < brojStan)
-    {
-        current->R = PronadiGrad(current->R, brojStan);
-    }
+    PronadiGrad(current->R, brojStan);
 
-    return current;
+    return 0;
 }
